@@ -7,3 +7,8 @@ class WikiPage(models.Model):
     created_date = models.DateTimeField('date created')
     last_modified = models.DateTimeField('last modified')
     
+    def __str__(self):
+        return self.title
+    
+    def __unicode__(self):
+        return unicode(self.title)
