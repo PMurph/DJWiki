@@ -1,6 +1,6 @@
-Feature: As a developer,
+Feature: As a sales associate,
     I want to be able to view wiki pages,
-    so that I can get information on projects I've worked on.
+    so that I can get information on the projects I am selling to the customer.
     
 Scenario: Viewing created page
     Given that the TestProject page exists
