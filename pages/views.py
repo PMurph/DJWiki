@@ -11,3 +11,7 @@ def detail(request, page_title):
         "page_content": wiki_page.page_content
     })
     return django.http.HttpResponse(page_template.render(context))
+    
+def new(request):
+    new_page_template = django.template.loader.get_template('pages/wiki_page_new.html')
+    return django.http.HttpResponse(new_page_template.render())

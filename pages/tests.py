@@ -45,8 +45,20 @@ class WikiPageDetailView(django.test.TestCase):
             Ensure that the test project page loads
            '''
         self.create_page(self.page_title, self.page_content)
-        # Temporary fix: Should look into how to use the urlresolvers.reverse syntax
+        
         response = self.client.get(django.core.urlresolvers.reverse('pages:detail', args=(self.page_title,)))
         self.assertContains(response, self.page_title, status_code=200)
         self.assertContains(response, self.page_content, status_code=200)
+        
+class WikiPageNewView(django.test.TestCase):
+    def test_new_view_renders_page(self):
+        '''
+            Ensure that the new page renders that new page form
+           '''
+        response = self.client.get(django.core.urlresolvers.reverse('pages:new'))
+        self.assertContains(response, '<h1>Create New Wiki Page</h1>', status_code=200)
+        self.assertContains(response, '<label>Page Title</label>', status_code=200)
+        self.assertContains(response, "<input type='text' name='title' />", status_code=200)
+        self.assertContains(response, '<label>Page Content</label>', status_code=200)
+        self.assertContains(response, "<textarea name='page_content'>", status_code=200)
         

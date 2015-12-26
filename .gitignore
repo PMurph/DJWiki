@@ -1,2 +1,4 @@
 *.pyc
 *.sqlite3
+/resources/pages/js/lib/
+/resources/pages/js/SpecRunner.html
