@@ -5,18 +5,18 @@
 <head>
 <title>Wiki: New Page</title>
 {% load staticfiles %}
-<script src="{% static "pages/NewPageSubmission.js" %}"></script>
+<script src="{% static "pages/js/src/NewPageSubmission.js" %}"></script>
 </head>
 
 <body>
 <h1>Create New Wiki Page</h1>
 <div id="new_page_form">
-    <form action="create" method="put">
+    <form action="">
         <label>Page Title</label>
         <input type='text' name='title' />
         <label>Page Content</label>
         <textarea name='page_content'></textarea>
-        <button type='submit'>Create</button>
+        <button type="button" onClick="createNewPage(this.form);">Create</button>
     </form>
 </div>
 </body>
