@@ -1,4 +1,18 @@
 describe("New Wiki Page Form Submission", function() {
+    describe('createNewPage', function() {
+        it('should make a asynchronous ajax post requests with a JSON object', function() {
+            var xmlHttpRequestSpy = jasmine.createSpyObj('XMLHttpRequest', ['send', 'open', 'setRequestHeader']);
+            var formJson = '{"first":"1st","second":"2nd"}';
+            
+            createNewPage(formJson, xmlHttpRequestSpy, null);
+            
+            expect(xmlHttpRequestSpy.open).toHaveBeenCalledWith('POST', '../create', true);
+            expect(xmlHttpRequestSpy.setRequestHeader).toHaveBeenCalledWith('Content-Type', 'application/json');
+            expect(xmlHttpRequestSpy.send).toHaveBeenCalledWith(formJson);
+            expect(xmlHttpRequestSpy.onreadystatechange).toBeTruthy();
+        });
+    });
+    
     describe('formToJson', function() {
         var firstNamedElement;
         var secondNamedElement;
@@ -23,7 +37,7 @@ describe("New Wiki Page Form Submission", function() {
         });
         
         it('should create a json object with form element names to values', function() {
-            var form = [firstNamedElement, secondNamedElement];
+            var form = {'elements': {0: firstNamedElement, 1: secondNamedElement, 'length': 2}};
             
             formJson = formToJson(form);
             
@@ -31,12 +45,56 @@ describe("New Wiki Page Form Submission", function() {
         });
         
         it('should not contain the value of a form element with no name', function() {
-            var form = [firstNamedElement, secondNamedElement, nonNamedElement];
+            var form = {'elements': {0: firstNamedElement, 1: secondNamedElement, 2: nonNamedElement, 'length': 3}};
             
             formJson = formToJson(form);
             
             expect(formJson).toEqual('{"first":"1st","second":"2nd"}');
             expect(nonNamedElement.getAttribute).toHaveBeenCalledWith('name');
+        });
+    });
+    
+    describe('handleCreatePageResponse', function() {
+        var windowMock;
+        var currPage;
+        var redirectPage
+        
+        beforeEach(function() {
+            redirectPage = "http://www.wiki.com";
+            currPage = 'http://www.test.com' ;
+            windowMock = { 'location': currPage };
+        });
+        
+        it('should redirect if response successfully creates page', function() {
+            var xmlHttpRequestMock = { 'readyState': 4, 'status': 200, 'responseText': '{"wikiPage":"' + redirectPage + '"}'};
+            
+            handleCreatePageResponse(xmlHttpRequestMock, windowMock);
+            
+            expect(windowMock.location).toEqual(redirectPage);
+        });
+        
+        it('should not redirect if response contains errors', function() {
+            var xmlHttpRequestMock = { 'readyState': 4, 'status': 200, 'responseText': '{"errors": ["test1", "test2"]}' };
+            
+            handleCreatePageResponse(xmlHttpRequestMock, windowMock);
+            
+            expect(windowMock.location).toEqual(currPage);
+        });
+        
+        it('should not redirect if the response status is not 200', function() {
+            var xmlHttpRequestMock = { 'readyState': 4, 'status': 404, 'responseText': '{"wikiPage":"' + redirectPage + '"}'};
+            
+            handleCreatePageResponse(xmlHttpRequestMock, windowMock);
+            
+            expect(windowMock.location).toEqual(currPage);
+        });
+        
+        it('should not redirect if the readyState is not 4', function() {
+            var xmlHttpRequestMock = { 'readyState': 3, 'status': 200, 'responseText': '{"wikiPage":"' + redirectPage + '"}'};
+            
+            handleCreatePageResponse(xmlHttpRequestMock, windowMock);
+            
+            expect(windowMock.location).toEqual(currPage);
         });
     });
 });

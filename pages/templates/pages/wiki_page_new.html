@@ -16,7 +16,7 @@
         <input type='text' name='title' />
         <label>Page Content</label>
         <textarea name='page_content'></textarea>
-        <button type="button" onClick="createNewPage(this.form);">Create</button>
+        <button type="button" onClick="createNewPage(formToJson(this.form), new XMLHttpRequest(), window, document);">Create</button>
     </form>
 </div>
 </body>
