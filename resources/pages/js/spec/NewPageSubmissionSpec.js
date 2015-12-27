@@ -57,20 +57,31 @@ describe("New Wiki Page Form Submission", function() {
     describe('handleCreatePageResponse', function() {
         var windowMock;
         var currPage;
-        var redirectPage
+        var baseURIl
+        var wikiPage;
         
         beforeEach(function() {
-            redirectPage = "http://www.wiki.com";
-            currPage = 'http://www.test.com' ;
+            baseURI = "http://www.test.com/pages/"
+            wikiPage = "NewPage";
+            currPage = baseURI + 'new' ;
             windowMock = { 'location': currPage };
         });
         
-        it('should redirect if response successfully creates page', function() {
-            var xmlHttpRequestMock = { 'readyState': 4, 'status': 200, 'responseText': '{"wikiPage":"' + redirectPage + '"}'};
+        it('should redirect if response successfully creates page and curr page URL contains terminating slash', function() {
+            var xmlHttpRequestMock = { 'readyState': 4, 'status': 200, 'responseText': '{"wikiPage":"' + wikiPage + '"}'};
+            windowMock.location = windowMock.location + "/"
             
             handleCreatePageResponse(xmlHttpRequestMock, windowMock);
             
-            expect(windowMock.location).toEqual(redirectPage);
+            expect(windowMock.location).toEqual(baseURI + wikiPage);
+        });
+        
+        it('should redirect if response successfully creates page and curr page URL does not contain terminating slash', function() {
+            var xmlHttpRequestMock = { 'readyState': 4, 'status': 200, 'responseText': '{"wikiPage":"' + wikiPage + '"}'};
+            
+            handleCreatePageResponse(xmlHttpRequestMock, windowMock);
+            
+            expect(windowMock.location).toEqual(baseURI + wikiPage);
         });
         
         it('should not redirect if response contains errors', function() {
@@ -82,7 +93,7 @@ describe("New Wiki Page Form Submission", function() {
         });
         
         it('should not redirect if the response status is not 200', function() {
-            var xmlHttpRequestMock = { 'readyState': 4, 'status': 404, 'responseText': '{"wikiPage":"' + redirectPage + '"}'};
+            var xmlHttpRequestMock = { 'readyState': 4, 'status': 404, 'responseText': '{"wikiPage":"' + wikiPage + '"}'};
             
             handleCreatePageResponse(xmlHttpRequestMock, windowMock);
             
@@ -90,7 +101,7 @@ describe("New Wiki Page Form Submission", function() {
         });
         
         it('should not redirect if the readyState is not 4', function() {
-            var xmlHttpRequestMock = { 'readyState': 3, 'status': 200, 'responseText': '{"wikiPage":"' + redirectPage + '"}'};
+            var xmlHttpRequestMock = { 'readyState': 3, 'status': 200, 'responseText': '{"wikiPage":"' + wikiPage + '"}'};
             
             handleCreatePageResponse(xmlHttpRequestMock, windowMock);
             

@@ -25,7 +25,12 @@ function handleCreatePageResponse(xml_http_request, window) {
         if(xml_http_request.status === 200) {
             ajaxResponse = JSON.parse(xml_http_request.responseText);
             if(ajaxResponse.wikiPage) {
-                window.location = ajaxResponse.wikiPage;
+                // Have to handle both the situation where the current page URL ends in / and when it does not end in a slash
+                if(window.location[window.location.length-1] == "/") {
+                    window.location = new URL(window.location + "../" + ajaxResponse.wikiPage).toString();
+                } else {
+                    window.location = new URL(window.location + "/../" +  ajaxResponse.wikiPage).toString();
+                }
             }
         }
     }

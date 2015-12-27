@@ -32,6 +32,13 @@ class WikiPageModelTest(django.test.TestCase):
         self.assertEquals(self.created_date, self.test_page.created_date)
         self.assertEquals(self.last_modified, self.test_page.last_modified)
         
+    def test_created_date_not_null(self):
+        '''
+             Ensure that the created date is set when object is created
+            '''
+        newWikiPage = pages.models.WikiPage()
+        self.assertIsNotNone(newWikiPage.created_date)
+        
 class WikiPageDetailView(django.test.TestCase):
     def setUp(self):
         self.page_title = "TestProject"
@@ -62,3 +69,11 @@ class WikiPageNewView(django.test.TestCase):
         self.assertContains(response, '<label>Page Content</label>', status_code=200)
         self.assertContains(response, "<textarea name='page_content'>", status_code=200)
         
+class WikiPageCreateView(django.test.TestCase):
+    def test_create_view_valid_request(self):
+        '''
+             Ensures that the create view creates a wiki page
+            '''
+        response = self.client.post(django.core.urlresolvers.reverse('pages:create'), data='{"title": "CreatePageTest", "page_content": "This is a test for create page view"}', content_type='application/json')
+        
+        self.assertContains(response, '{"wikiPage": "CreatePageTest"}', status_code=200)
