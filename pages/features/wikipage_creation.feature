@@ -10,6 +10,10 @@ Scenario: Viewing the new page form
 Scenario: Creating a new page
     Given that the NewProject page does not exist
     And given that I view the new page form
-    And given that I enter NewProject as the title and "This is for a test" as the content
-    I should see the newly created "NewProject" page
+    And given that I enter "NewProject" as the title 
+    And given that I enter "This is for a test" as the page_content
+    And given that I create the page
+    I should receive a message stating the NewProject page was created
+    Given that I view the NewProject page
+    I should see the "NewProject" page
     

@@ -9,7 +9,6 @@ class WikiPage(models.Model):
     created_date = models.DateTimeField('date created')
     last_modified = models.DateTimeField('last modified')
     
-    
     def __init__(self, *args, **kwargs):
         super(WikiPage, self).__init__(*args, **kwargs)
         self.created_date = django.utils.timezone.now()

@@ -18,6 +18,9 @@ def new(request):
     return django.http.HttpResponse(new_page_template.render())
     
 def create(request):
+    if(request.method != "POST"):
+        return django.http.HttpResponseNotAllowed(['POST'])
+
     new_page_content = json.loads(request.body)
     new_page = models.WikiPage(title=new_page_content[u'title'], page_content=new_page_content[u'page_content'])
     new_page.last_modified = new_page.created_date

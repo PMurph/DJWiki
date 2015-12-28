@@ -2,7 +2,10 @@
 
 import django.core.urlresolvers
 import django.test.client
+import django.test.runner
+import django.utils
 import lettuce
+import pages.models
 import socket
 import urllib
 
@@ -18,6 +21,9 @@ wiki_pages = 'pages'
 
 @lettuce.before.all
 def setUp():
+    # This is a hack pulled from django test runner DiscoverRunner.run_tests, since lettuce is not setup to handle creating a test database
+    lettuce.world.test_runner = django.test.runner.DiscoverRunner()
+    lettuce.world.old_config = lettuce.world.test_runner.setup_databases()
     try: 
         lettuce.world.debug_socket = socket.socket()
         lettuce.world.debug_socket.connect(('127.0.0.1', 16543))
@@ -28,6 +34,8 @@ def setUp():
     
 @lettuce.after.all
 def tearDown(*args):
+    # End of hack
+    lettuce.world.test_runner.teardown_databases(lettuce.world.old_config)
     try:
         lettuce.world.debug_socket.send(EXIT_MESSAGE)
     except:
@@ -37,8 +45,12 @@ def tearDown(*args):
 
 @lettuce.step(u'[And ]{0,1}[G|g]iven that the ([^\s]+) page exists')
 def given_that_the_page_exists(step, page_name):
-    response = lettuce.world.test_client.get(django.core.urlresolvers.reverse('pages:detail', args=(page_name,)))
-    assert(response.status_code == 200)
+    try:
+        response = lettuce.world.test_client.get(django.core.urlresolvers.reverse('pages:detail', args=(page_name,)))
+        if "Wiki: %s" % (page_name) not in response.content:
+            pages.models.WikiPage(title=page_name, page_content="This is a test project", last_modified=django.utils.timezone.now()).save()
+    except:
+        pages.models.WikiPage(title=page_name, page_content="This is a test project", last_modified=django.utils.timezone.now()).save()
 
 @lettuce.step(u'[And ]{0,1}[G|g]iven that I view the ([^\s]+) page')
 def given_that_i_view_the_page(step, page_name):
@@ -58,7 +70,7 @@ def the_pages_main_heading(step, main_heading):
     
     page_content = lettuce.world.current_response.content
     
-    assert(("<h1>" + main_heading + "</h1>") in page_content)
+    assert(("<h1>%s</h1>" % (main_heading)) in page_content)
     
 @lettuce.step(u"[And ]{0,1}[I|i]t should contain the text \"([^\"]+)")
 def it_should_contain_text(step, text):

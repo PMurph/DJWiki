@@ -72,8 +72,16 @@ class WikiPageNewView(django.test.TestCase):
 class WikiPageCreateView(django.test.TestCase):
     def test_create_view_valid_request(self):
         '''
-             Ensures that the create view creates a wiki page
+             Ensure that the create view creates a wiki page
             '''
         response = self.client.post(django.core.urlresolvers.reverse('pages:create'), data='{"title": "CreatePageTest", "page_content": "This is a test for create page view"}', content_type='application/json')
         
         self.assertContains(response, '{"wikiPage": "CreatePageTest"}', status_code=200)
+        
+    def test_create_view_should_return_error_if_not_post_request(self):
+        '''
+            Ensure that the create view only responds to post requests
+           '''
+        response = self.client.get(django.core.urlresolvers.reverse('pages:create'), data={"title": "AnotherTest", "page_content": "This test should not create a page"}, content_type='application/json')
+        
+        self.assertEquals(405, response.status_code)
