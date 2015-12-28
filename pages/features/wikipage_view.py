@@ -56,7 +56,7 @@ def given_that_the_page_exists(step, page_name):
 def given_that_i_view_the_page(step, page_name):
     lettuce.world.current_response = lettuce.world.test_client.get(django.core.urlresolvers.reverse('pages:detail', args=(page_name,)))
     
-@lettuce.step(u'[And ]{0,1}[T|t]he page should have the title ([^\s]+)')
+@lettuce.step(u'[And ]{0,1}[I|i]t should have "([^"]+)" as the title')
 def the_page_should_have_title(step, page_title):
     assert(lettuce.world.current_response is not None)
     
@@ -64,15 +64,15 @@ def the_page_should_have_title(step, page_title):
     
     assert(("<title>Wiki: " + page_title + "</title>") in page_content)
     
-@lettuce.step(u"[And ]{0,1}[T|t]he page's main heading should be \"([^\"]+)")
-def the_pages_main_heading(step, main_heading):
+@lettuce.step(u'[And ]{0,1}[I|i]t should have "([^\"]+)" as the ([^\s]+) heading')
+def the_pages_main_heading(step, heading_content, heading_type):
     assert(lettuce.world.current_response is not None)
     
     page_content = lettuce.world.current_response.content
     
-    assert(("<h1>%s</h1>" % (main_heading)) in page_content)
+    assert(("<%s>%s</%s>" % (heading_type, heading_content, heading_type)) in page_content)
     
-@lettuce.step(u"[And ]{0,1}[I|i]t should contain the text \"([^\"]+)")
+@lettuce.step(u'[And ]{0,1}[I|i]t should have "([^\"]+)" as the content')
 def it_should_contain_text(step, text):
     assert(lettuce.world.current_response is not None)
     

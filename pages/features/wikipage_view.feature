@@ -5,6 +5,6 @@ Feature: As a sales associate,
 Scenario: Viewing created page
     Given that the TestProject page exists
     And given that I view the TestProject page
-    The page should have the title TestProject
-    And the page's main heading should be "TestProject"
-    And it should contain the text "This is a test project"
+    It should have "TestProject" as the title
+    And it should have "TestProject" as the h1 heading
+    And it should have "This is a test project" as the content
