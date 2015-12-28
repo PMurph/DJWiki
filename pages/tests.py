@@ -85,3 +85,14 @@ class WikiPageCreateView(django.test.TestCase):
         response = self.client.get(django.core.urlresolvers.reverse('pages:create'), data={"title": "AnotherTest", "page_content": "This test should not create a page"}, content_type='application/json')
         
         self.assertEquals(405, response.status_code)
+        
+    def test_create_view_should_not_allow_duplicate_pages(self):
+        '''
+            Ensures that duplicate pages cannot be created
+           '''
+        page_name = "DuplicatePageTest"
+        page_data = '{"title": "%s", "page_content": "This is a test to ensure duplicate pages cannot be created"}' % (page_name)
+        self.client.post(django.core.urlresolvers.reverse('pages:create'), data=page_data, content_type='application/json')
+        response = self.client.post(django.core.urlresolvers.reverse('pages:create'), data=page_data, content_type='application/json')
+        
+        self.assertContains(response, '{"errors": ["Page %s already exists"]}' % (page_name), status_code=403)
