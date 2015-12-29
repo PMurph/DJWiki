@@ -43,7 +43,7 @@ def tearDown(*args):
     finally:
         lettuce.world.debug_socket.close()
 
-@lettuce.step(u'[And ]{0,1}[G|g]iven that the ([^\s]+) page exists')
+@lettuce.step(u'[And ]{0,1}[G|g]iven that the ([^\s-]+) page exists')
 def given_that_the_page_exists(step, page_name):
     try:
         response = lettuce.world.test_client.get(django.core.urlresolvers.reverse('pages:detail', args=(page_name,)))

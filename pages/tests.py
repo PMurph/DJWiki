@@ -1,12 +1,14 @@
 import django.core.urlresolvers
 import django.utils
 import django.test
+import json
 import pages.models
 
 class WikiPageModelTest(django.test.TestCase):
     def setUp(self):
         self.page_title = "TestPage"
         self.page_content = "This is a test page"
+        self.page_url = 'an-explicit-page-url'
         self.created_date = django.utils.timezone.now()
         self.last_modified = django.utils.timezone.now()
         self.test_page = pages.models.WikiPage(title=self.page_title, page_content=self.page_content, created_date=self.created_date, last_modified=self.last_modified)
@@ -23,14 +25,31 @@ class WikiPageModelTest(django.test.TestCase):
            '''
         self.assertEquals(unicode(self.page_title), unicode(self.test_page))
         
-    def test_model_variables(self):
+    def test_model_variables_no_url(self):
         '''
-            Ensure all model variables are set properly
+            Ensure all model variables are set properly if no explicit url is set
            '''
         self.assertEquals(self.page_title, self.test_page.title)
+        self.assertEquals(self.page_title, self.test_page.page_url)
         self.assertEquals(self.page_content, self.test_page.page_content)
         self.assertEquals(self.created_date, self.test_page.created_date)
         self.assertEquals(self.last_modified, self.test_page.last_modified)
+        
+    def test_model_variables_url(self):
+        '''
+            Ensures that the page_url property is set if explicit url is set
+           '''
+        test_page = pages.models.WikiPage(title=self.page_title, page_url=self.page_url, page_content=self.page_content, created_date=self.created_date, last_modified=self.last_modified)
+        
+        self.assertEquals(self.page_url, test_page.page_url)
+        
+    def test_model_variables_url_is_None(self):
+        '''
+            Ensures that if the page_url property is specified to be None, the functionality is the same as if no url was specified
+           '''
+        test_page = pages.models.WikiPage(title=self.page_title, page_url=None, page_content=self.page_content, created_date=self.created_date, last_modified=self.last_modified)
+        
+        self.assertEquals(self.page_title, test_page.page_url)
         
     def test_created_date_not_null(self):
         '''
@@ -44,14 +63,14 @@ class WikiPageDetailView(django.test.TestCase):
         self.page_title = "TestProject"
         self.page_content = u"This is a test project."
         
-    def create_page(self, page_title, page_content):
-        pages.models.WikiPage.objects.create(title=page_title, page_content=page_content, created_date=django.utils.timezone.now(), last_modified=django.utils.timezone.now())
+    def create_page(self, page_title, page_url, page_content):
+        pages.models.WikiPage.objects.create(title=page_title, page_url=page_url, page_content=page_content, created_date=django.utils.timezone.now(), last_modified=django.utils.timezone.now())
 
     def test_detail_view_renders_page(self):
         '''
             Ensure that the test project page loads
            '''
-        self.create_page(self.page_title, self.page_content)
+        self.create_page(self.page_title, self.page_title, self.page_content)
         
         response = self.client.get(django.core.urlresolvers.reverse('pages:detail', args=(self.page_title,)))
         self.assertContains(response, self.page_title, status_code=200)
@@ -66,6 +85,8 @@ class WikiPageNewView(django.test.TestCase):
         self.assertContains(response, '<h1>Create New Wiki Page</h1>', status_code=200)
         self.assertContains(response, '<label>Page Title</label>', status_code=200)
         self.assertContains(response, "<input type='text' name='title' />", status_code=200)
+        self.assertContains(response, "<label>Page URL Suffix</label>", status_code=200)
+        self.assertContains(response, "<input type='text' name='page_url' />", status_code=200)
         self.assertContains(response, '<label>Page Content</label>', status_code=200)
         self.assertContains(response, "<textarea name='page_content'>", status_code=200)
         
@@ -77,6 +98,40 @@ class WikiPageCreateView(django.test.TestCase):
         response = self.client.post(django.core.urlresolvers.reverse('pages:create'), data='{"title": "CreatePageTest", "page_content": "This is a test for create page view"}', content_type='application/json')
         
         self.assertContains(response, '{"wikiPage": "CreatePageTest"}', status_code=200)
+        
+    def test_create_view_valid_request_with_url(self):
+        '''
+            Ensure that a page can be created with a url
+           '''
+        page_url = 'a-page-url'
+        page_creation_obj = {
+            'title': 'URLPageTest',
+            'page_url': page_url,
+            'page_content': 'This is testing the creation of a page using the page_url attribute'
+        }
+        response = self.client.post(django.core.urlresolvers.reverse('pages:create'), data=json.dumps(page_creation_obj), content_type='application/json')
+        
+        page_creation_response_obj = {
+            'wikiPage': page_url
+        }
+        self.assertContains(response, json.dumps(page_creation_response_obj), status_code=200)
+        
+    def test_create_view_valid_request_with_empty_string_url(self):
+        '''
+            Ensures that a page created with an empty string as a url uses the title as url
+           '''
+        page_title = "EmptyPageURL"
+        page_creation_obj = {
+            'title': page_title,
+            'page_url': '',
+            'page_content': 'This is testing the creation of a page using an empty string as the page_url attribute'
+        }
+        response = self.client.post(django.core.urlresolvers.reverse('pages:create'), data=json.dumps(page_creation_obj), content_type='application/json')
+        
+        page_creation_response_obj = {
+            'wikiPage': page_title
+        }
+        self.assertContains(response, json.dumps(page_creation_response_obj), status_code=200)
         
     def test_create_view_should_return_error_if_not_post_request(self):
         '''

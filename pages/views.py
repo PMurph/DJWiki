@@ -29,9 +29,11 @@ def create(request):
         return django.http.HttpResponseForbidden(response_json, content_type="application/json")
     except:
         pass
-
+    
     new_page = models.WikiPage(title=new_page_title, page_content=new_page_content[u'page_content'])
+    if u'page_url' in new_page_content and new_page_content[u'page_url'] != '':
+        new_page.page_url = new_page_content[u'page_url']
     new_page.last_modified = new_page.created_date
     new_page.save()
-    response_json = json.dumps({u"wikiPage": new_page_title})
+    response_json = json.dumps({u"wikiPage": new_page.page_url})
     return django.http.HttpResponse(response_json, content_type="application/json")

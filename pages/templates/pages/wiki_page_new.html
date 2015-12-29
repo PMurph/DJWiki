@@ -12,11 +12,24 @@
 <h1>Create New Wiki Page</h1>
 <div id="new_page_form">
     <form action="">
-        <label>Page Title</label>
-        <input type='text' name='title' />
-        <label>Page Content</label>
-        <textarea name='page_content'></textarea>
-        <button type="button" onClick="createNewPage(formToJson(this.form), new XMLHttpRequest(), window, document);">Create</button>
+        <div>
+            <label>Page Title</label>
+            <input type='text' name='title' />
+         </div>
+         
+         <div>
+            <label>Page URL Suffix</label>
+            <input type='text' name='page_url' />
+         </div>
+         
+         <div>
+            <label>Page Content</label>
+            <textarea name='page_content'></textarea>
+         </div>
+        
+        <div>
+            <button type="button" onClick="createNewPage(formToJson(this.form), new XMLHttpRequest(), window, document);">Create</button>
+        </div>
     </form>
 </div>
 </body>
