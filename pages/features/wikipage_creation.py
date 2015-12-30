@@ -23,15 +23,15 @@ def tearDown(*args):
 def view_the_new_page_form(step):
     lettuce.world.last_response = lettuce.world.test_client.get(django.core.urlresolvers.reverse('pages:new'))
     
-@lettuce.step(u'[And ]{0,1}[T|t]he page should have a place to enter the ([^\s]+) of the page')
+@lettuce.step(u'[And ]{0,1}[I|i]t should have a place to enter the ([^\s]+) of the page')
 def should_have_form_element(step, form_element):
     assert(lettuce.world.last_response is not None)
     
     page_content = lettuce.world.last_response.content
     
-    input_form_element = "<input type='text' name='%s'>" % (form_element)
-    textarea_form_elemnt = "<textarea name='%s'>" % (form_element)
-    assert(form_element in page_content)
+    input_form_element = "<input type='text' name='%s' />" % (form_element)
+    textarea_form_element = "<textarea name='%s'>" % (form_element)
+    assert(input_form_element in page_content or textarea_form_element in page_content)
     
 @lettuce.step(u'[And ]{0,1}[G|g]iven that the ([^\s]+) page does not exist')
 def given_page_does_not_exist(step, page_name):

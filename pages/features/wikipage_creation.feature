@@ -4,8 +4,9 @@ Feature: As a project manager,
     
 Scenario: Viewing the new page form
     Given that I view the new page form
-    The page should have a place to enter the title of the page
-    And the page should have a place to enter the content of the page
+    It should have a place to enter the title of the page
+    And it should have a place to enter the page_url of the page
+    And it should have a place to enter the page_content of the page
 
 Scenario: Creating a new page
     Given that the NewProject page does not exist
