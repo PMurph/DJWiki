@@ -59,10 +59,6 @@ class WikiPageModelTest(django.test.TestCase):
         self.assertIsNotNone(newWikiPage.created_date)
         
 class WikiPageDetailView(django.test.TestCase):
-    def setUp(self):
-        self.page_title = "TestProject"
-        self.page_content = u"This is a test project."
-        
     def create_page(self, page_title, page_url, page_content):
         pages.models.WikiPage.objects.create(title=page_title, page_url=page_url, page_content=page_content, created_date=django.utils.timezone.now(), last_modified=django.utils.timezone.now())
 
@@ -70,11 +66,26 @@ class WikiPageDetailView(django.test.TestCase):
         '''
             Ensure that the test project page loads
            '''
-        self.create_page(self.page_title, self.page_title, self.page_content)
+        page_title = "TestProject"
+        page_content = u"This is a test project."
+        self.create_page(page_title, page_title, page_content)
         
-        response = self.client.get(django.core.urlresolvers.reverse('pages:detail', args=(self.page_title,)))
-        self.assertContains(response, self.page_title, status_code=200)
-        self.assertContains(response, self.page_content, status_code=200)
+        response = self.client.get(django.core.urlresolvers.reverse('pages:detail', args=(page_title,)))
+        self.assertContains(response, page_title, status_code=200)
+        self.assertContains(response, page_content, status_code=200)
+        
+    def test_detail_view_renders_page_with_separate_url_from_title(self):
+        '''
+            Ensure that the a page with different titles and url
+           '''
+        page_title = "URLTestProject"
+        page_url = "url-test-project"
+        page_content = u"This is to test that a project with a separate title and url renders"
+        self.create_page(page_title, page_url, page_content)
+        
+        response = self.client.get(django.core.urlresolvers.reverse('pages:detail', args=(page_url,)))
+        self.assertContains(response, page_title, status_code=200)
+        self.assertContains(response, page_content, status_code=200)
         
 class WikiPageNewView(django.test.TestCase):
     def test_new_view_renders_page(self):

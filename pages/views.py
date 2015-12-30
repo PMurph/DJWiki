@@ -4,8 +4,8 @@ import django.http
 import django.template
 
 # Create your views here.
-def detail(request, page_title):
-    wiki_page = models.WikiPage.objects.get(title=page_title)
+def detail(request, page_url):
+    wiki_page = models.WikiPage.objects.get(page_url=page_url)
     page_template = django.template.loader.get_template('pages/wiki_page_details.html')
     context = django.template.RequestContext(request, {
         "page_title": wiki_page.title,

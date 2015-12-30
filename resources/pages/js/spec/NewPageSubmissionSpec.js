@@ -6,7 +6,7 @@ describe("New Wiki Page Form Submission", function() {
             
             createNewPage(formJson, xmlHttpRequestSpy, null);
             
-            expect(xmlHttpRequestSpy.open).toHaveBeenCalledWith('POST', '../create', true);
+            expect(xmlHttpRequestSpy.open).toHaveBeenCalledWith('POST', '../create/', true);
             expect(xmlHttpRequestSpy.setRequestHeader).toHaveBeenCalledWith('Content-Type', 'application/json');
             expect(xmlHttpRequestSpy.send).toHaveBeenCalledWith(formJson);
             expect(xmlHttpRequestSpy.onreadystatechange).toBeTruthy();
@@ -64,12 +64,12 @@ describe("New Wiki Page Form Submission", function() {
             baseURI = "http://www.test.com/pages/"
             wikiPage = "NewPage";
             currPage = baseURI + 'new' ;
-            windowMock = { 'location': currPage };
+            windowMock = { 'location': { 'href': currPage } };
         });
         
         it('should redirect if response successfully creates page and curr page URL contains terminating slash', function() {
             var xmlHttpRequestMock = { 'readyState': 4, 'status': 200, 'responseText': '{"wikiPage":"' + wikiPage + '"}'};
-            windowMock.location = windowMock.location + "/"
+            windowMock.location.href = windowMock.location.href+ "/"
             
             handleCreatePageResponse(xmlHttpRequestMock, windowMock);
             
@@ -89,7 +89,7 @@ describe("New Wiki Page Form Submission", function() {
             
             handleCreatePageResponse(xmlHttpRequestMock, windowMock);
             
-            expect(windowMock.location).toEqual(currPage);
+            expect(windowMock.location.href).toEqual(currPage);
         });
         
         it('should not redirect if the response status is not 200', function() {
@@ -97,7 +97,7 @@ describe("New Wiki Page Form Submission", function() {
             
             handleCreatePageResponse(xmlHttpRequestMock, windowMock);
             
-            expect(windowMock.location).toEqual(currPage);
+            expect(windowMock.location.href).toEqual(currPage);
         });
         
         it('should not redirect if the readyState is not 4', function() {
@@ -105,7 +105,7 @@ describe("New Wiki Page Form Submission", function() {
             
             handleCreatePageResponse(xmlHttpRequestMock, windowMock);
             
-            expect(windowMock.location).toEqual(currPage);
+            expect(windowMock.location.href).toEqual(currPage);
         });
     });
 });
