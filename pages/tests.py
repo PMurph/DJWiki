@@ -111,9 +111,22 @@ class WikiPageCreateView(django.test.TestCase):
         '''
              Ensure that the create view creates a wiki page
             '''
-        response = self.client.post(django.core.urlresolvers.reverse('pages:create'), data='{"title": "CreatePageTest", "page_content": "This is a test for create page view"}', content_type='application/json')
+        page_title = "CreatePageTest"
+        page_content = "This is a test create page view"
+        page_data = {
+            'title': page_title,
+            'page_content': page_content
+        }
+        response = self.client.post(django.core.urlresolvers.reverse('pages:create'), data=json.dumps(page_data), content_type='application/json')
         
-        self.assertContains(response, '{"wikiPage": "CreatePageTest"}', status_code=200)
+        response_json = {
+            'wikiPage': page_title
+        }
+        self.assertContains(response, json.dumps(response_json), status_code=200)
+        
+        create_wiki_page = pages.models.WikiPage.objects.get(page_url=page_title)
+        self.assertEquals(page_title, create_wiki_page.title)
+        self.assertEquals(page_content, create_wiki_page.page_content)
         
     def test_create_view_valid_request_with_url(self):
         '''
@@ -195,3 +208,38 @@ class WikiPageEditView(django.test.TestCase):
         response_page_content = "<textarea name='page_content'>%s</textarea>" % (page_content)
         self.assertContains(response, '<label>Page Content</label>', status_code=200)
         self.assertContains(response, response_page_content, status_code=200)
+        
+    def test_edit_view_returns_404_if_no_matching_page(self):
+        '''
+            Ensure that the edit view returns a 404 error if a matching page cannot be found
+           '''
+        page_url = 'should-not-exist'
+        response = self.client.get(django.core.urlresolvers.reverse('pages:edit', args=(page_url,)))
+        self.assertEquals(404, response.status_code)
+        
+class WikiPageUpdateView(django.test.TestCase):
+    def test_update_view_valid_request(self):
+        '''
+            Ensure that update view updates a wiki page
+           '''
+        page_url = 'update-page'
+        create_page('UpdatePageTest', page_url, 'This is a test page for updating a wiki page')
+        
+        updated_title = 'UpdatedPageTest'
+        updated_content = "This is the updated page content of the page"
+        page_data = {
+            'title': updated_title,
+            'page_url': page_url,
+            'page_content': updated_content
+        }
+        
+        response = self.client.post(django.core.urlresolvers.reverse('pages:update', args=(page_url,)), data=json.dumps(page_data), content_type='application/json')
+        
+        response_json = {
+            'wikiPage': page_url
+        }
+        self.assertContains(response, json.dumps(response_json), status_code=200)
+        
+        updated_page = pages.models.WikiPage.objects.get(page_url=page_url)
+        self.assertEquals(updated_title, updated_page.title)
+        self.assertEquals(updated_content, updated_page.page_content)

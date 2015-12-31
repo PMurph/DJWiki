@@ -1,5 +1,6 @@
 import json
 import models
+import django.core.exceptions
 import django.http
 import django.template
 
@@ -40,7 +41,11 @@ def create(request):
     return django.http.HttpResponse(response_json, content_type="application/json")
     
 def edit(request, page_url):
-    edit_page = models.WikiPage.objects.get(page_url=page_url)
+    edit_page = None
+    try:
+        edit_page = models.WikiPage.objects.get(page_url=page_url)
+    except django.core.exceptions.ObjectDoesNotExist as odne:
+        return django.http.HttpResponseNotFound("Page %s does not exist" % (page_url))
 
     edit_page_template = django.template.loader.get_template('pages/wiki_page_edit.html')
     context = django.template.RequestContext(request, {
