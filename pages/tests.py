@@ -4,6 +4,9 @@ import django.test
 import json
 import pages.models
 
+def create_page(page_title, page_url, page_content):
+    pages.models.WikiPage.objects.create(title=page_title, page_url=page_url, page_content=page_content, created_date=django.utils.timezone.now(), last_modified=django.utils.timezone.now())
+
 class WikiPageModelTest(django.test.TestCase):
     def setUp(self):
         self.page_title = "TestPage"
@@ -59,8 +62,8 @@ class WikiPageModelTest(django.test.TestCase):
         self.assertIsNotNone(newWikiPage.created_date)
         
 class WikiPageDetailView(django.test.TestCase):
-    def create_page(self, page_title, page_url, page_content):
-        pages.models.WikiPage.objects.create(title=page_title, page_url=page_url, page_content=page_content, created_date=django.utils.timezone.now(), last_modified=django.utils.timezone.now())
+    def setUp(self):
+        self.edit_link = 'href="edit/"'
 
     def test_detail_view_renders_page(self):
         '''
@@ -68,11 +71,12 @@ class WikiPageDetailView(django.test.TestCase):
            '''
         page_title = "TestProject"
         page_content = u"This is a test project."
-        self.create_page(page_title, page_title, page_content)
+        create_page(page_title, page_title, page_content)
         
         response = self.client.get(django.core.urlresolvers.reverse('pages:detail', args=(page_title,)))
         self.assertContains(response, page_title, status_code=200)
         self.assertContains(response, page_content, status_code=200)
+        self.assertContains(response, self.edit_link, status_code=200)
         
     def test_detail_view_renders_page_with_separate_url_from_title(self):
         '''
@@ -81,11 +85,12 @@ class WikiPageDetailView(django.test.TestCase):
         page_title = "URLTestProject"
         page_url = "url-test-project"
         page_content = u"This is to test that a project with a separate title and url renders"
-        self.create_page(page_title, page_url, page_content)
+        create_page(page_title, page_url, page_content)
         
         response = self.client.get(django.core.urlresolvers.reverse('pages:detail', args=(page_url,)))
         self.assertContains(response, page_title, status_code=200)
         self.assertContains(response, page_content, status_code=200)
+        self.assertContains(response, self.edit_link, status_code=200)
         
 class WikiPageNewView(django.test.TestCase):
     def test_new_view_renders_page(self):
@@ -156,9 +161,37 @@ class WikiPageCreateView(django.test.TestCase):
         '''
             Ensures that duplicate pages cannot be created
            '''
-        page_name = "DuplicatePageTest"
-        page_data = '{"title": "%s", "page_content": "This is a test to ensure duplicate pages cannot be created"}' % (page_name)
-        self.client.post(django.core.urlresolvers.reverse('pages:create'), data=page_data, content_type='application/json')
-        response = self.client.post(django.core.urlresolvers.reverse('pages:create'), data=page_data, content_type='application/json')
+        page_url = 'duplicate-page'
+        page_data = {
+            'title': "DuplicatePageTest",
+            'page_url': page_url,
+            'page_content': "This is a test to ensure duplicate pages cannot be created"
+        }
+        self.client.post(django.core.urlresolvers.reverse('pages:create'), data=json.dumps(page_data), content_type='application/json')
+        response = self.client.post(django.core.urlresolvers.reverse('pages:create'), data=json.dumps(page_data), content_type='application/json')
         
-        self.assertContains(response, '{"errors": ["Page %s already exists"]}' % (page_name), status_code=403)
+        self.assertContains(response, '{"errors": ["Page %s already exists"]}' % (page_url), status_code=403)
+        
+class WikiPageEditView(django.test.TestCase):
+    def test_edit_view_renders_page(self):
+        '''
+            Ensure that the edit view renders the edit page form
+           '''
+        page_title = "EditPageTest"
+        page_content = "This is a test of the edit page"
+        create_page(page_title, page_title, page_content)
+        response = self.client.get(django.core.urlresolvers.reverse('pages:edit', args=(page_title,)))
+        
+        response_page_title = '<title>Wiki: Editting %s</title>' % (page_title)
+        self.assertContains(response, response_page_title, status_code=200)
+        
+        response_page_heading = '<h1>Editting %s</h1>' % (page_title)
+        self.assertContains(response, response_page_heading, status_code=200)
+        
+        response_page_title_input = "<input type='text' name='title' value='%s' />" % (page_title)
+        self.assertContains(response, '<label>Page Title</label>', status_code=200)
+        self.assertContains(response, response_page_title_input, status_code=200)
+        
+        response_page_content = "<textarea name='page_content'>%s</textarea>" % (page_content)
+        self.assertContains(response, '<label>Page Content</label>', status_code=200)
+        self.assertContains(response, response_page_content, status_code=200)

@@ -23,9 +23,10 @@ def create(request):
     
     new_page_content = json.loads(request.body)
     new_page_title = new_page_content[u'title']
+    new_page_url = new_page_content[u'page_url'] if u'page_url' in new_page_content else new_page_title
     try:
-        models.WikiPage.objects.get(title=new_page_title)
-        response_json = json.dumps({u'errors': ["Page %s already exists" % (new_page_title)]})
+        models.WikiPage.objects.get(page_url=new_page_url)
+        response_json = json.dumps({u'errors': ["Page %s already exists" % (new_page_url)]})
         return django.http.HttpResponseForbidden(response_json, content_type="application/json")
     except:
         pass
@@ -37,3 +38,13 @@ def create(request):
     new_page.save()
     response_json = json.dumps({u"wikiPage": new_page.page_url})
     return django.http.HttpResponse(response_json, content_type="application/json")
+    
+def edit(request, page_url):
+    edit_page = models.WikiPage.objects.get(page_url=page_url)
+
+    edit_page_template = django.template.loader.get_template('pages/wiki_page_edit.html')
+    context = django.template.RequestContext(request, {
+        "page_title": edit_page.title,
+        "page_content": edit_page.page_content
+    })
+    return django.http.HttpResponse(edit_page_template.render(context))
