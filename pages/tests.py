@@ -5,7 +5,7 @@ import json
 import pages.models
 
 def create_page(page_title, page_url, page_content):
-    pages.models.WikiPage.objects.create(title=page_title, page_url=page_url, page_content=page_content, created_date=django.utils.timezone.now(), last_modified=django.utils.timezone.now())
+    pages.models.WikiPage(title=page_title, page_url=page_url, page_content=page_content, created_date=django.utils.timezone.now(), last_modified=django.utils.timezone.now()).save()
 
 class WikiPageModelTest(django.test.TestCase):
     def setUp(self):
@@ -14,7 +14,7 @@ class WikiPageModelTest(django.test.TestCase):
         self.page_url = 'an-explicit-page-url'
         self.created_date = django.utils.timezone.now()
         self.last_modified = django.utils.timezone.now()
-        self.test_page = pages.models.WikiPage(title=self.page_title, page_content=self.page_content, created_date=self.created_date, last_modified=self.last_modified)
+        self.test_page = pages.models.WikiPage(title=self.page_title, page_url=self.page_url, page_content=self.page_content, created_date=self.created_date, last_modified=self.last_modified)
 
     def test_str(self):
         '''
@@ -33,7 +33,7 @@ class WikiPageModelTest(django.test.TestCase):
             Ensure all model variables are set properly if no explicit url is set
            '''
         self.assertEquals(self.page_title, self.test_page.title)
-        self.assertEquals(self.page_title, self.test_page.page_url)
+        self.assertEquals(self.page_url, self.test_page.page_url)
         self.assertEquals(self.page_content, self.test_page.page_content)
         self.assertEquals(self.created_date, self.test_page.created_date)
         self.assertEquals(self.last_modified, self.test_page.last_modified)
@@ -45,21 +45,24 @@ class WikiPageModelTest(django.test.TestCase):
         test_page = pages.models.WikiPage(title=self.page_title, page_url=self.page_url, page_content=self.page_content, created_date=self.created_date, last_modified=self.last_modified)
         
         self.assertEquals(self.page_url, test_page.page_url)
-        
-    def test_model_variables_url_is_None(self):
-        '''
-            Ensures that if the page_url property is specified to be None, the functionality is the same as if no url was specified
-           '''
-        test_page = pages.models.WikiPage(title=self.page_title, page_url=None, page_content=self.page_content, created_date=self.created_date, last_modified=self.last_modified)
-        
-        self.assertEquals(self.page_title, test_page.page_url)
-        
+
     def test_created_date_not_null(self):
         '''
              Ensure that the created date is set when object is created
             '''
-        newWikiPage = pages.models.WikiPage()
-        self.assertIsNotNone(newWikiPage.created_date)
+        new_wiki_page = pages.models.WikiPage()
+        self.assertIsNotNone(new_wiki_page.created_date)
+        
+    def test_model_page_url_save_and_load(self):
+        '''
+            Ensure that a model with different title and url can be saved and loaded
+           '''
+        page_url = u'update-page'
+        create_page('UpdatePageTest', page_url, 'This is a test page for updating a wiki page')
+        #pages.models.WikiPage(title='UpdatePageTest', page_url=page_url, page_content="This is a test", created_date=django.utils.timezone.now(), last_modified=django.utils.timezone.now()).save()
+        # Will throw exception if page doesn't exist
+        update_page_url = pages.models.WikiPage.objects.get(page_url=page_url)
+        self.assertEquals(page_url, update_page_url.page_url)
         
 class WikiPageDetailView(django.test.TestCase):
     def setUp(self):
@@ -169,6 +172,7 @@ class WikiPageCreateView(django.test.TestCase):
         response = self.client.get(django.core.urlresolvers.reverse('pages:create'), data={"title": "AnotherTest", "page_content": "This test should not create a page"}, content_type='application/json')
         
         self.assertEquals(405, response.status_code)
+        self.assertTrue('errors' in json.loads(response.content))
         
     def test_create_view_should_not_allow_duplicate_pages(self):
         '''
@@ -218,6 +222,14 @@ class WikiPageEditView(django.test.TestCase):
         self.assertEquals(404, response.status_code)
         
 class WikiPageUpdateView(django.test.TestCase):
+    def setUp(self):
+        self.updated_title = 'UpdatedPageTest'
+        self.updated_content = "This is the updated page content of the page"
+        self.page_data = {
+            'title': self.updated_title,
+            'page_content': self.updated_content
+        }
+    
     def test_update_view_valid_request(self):
         '''
             Ensure that update view updates a wiki page
@@ -225,15 +237,7 @@ class WikiPageUpdateView(django.test.TestCase):
         page_url = 'update-page'
         create_page('UpdatePageTest', page_url, 'This is a test page for updating a wiki page')
         
-        updated_title = 'UpdatedPageTest'
-        updated_content = "This is the updated page content of the page"
-        page_data = {
-            'title': updated_title,
-            'page_url': page_url,
-            'page_content': updated_content
-        }
-        
-        response = self.client.post(django.core.urlresolvers.reverse('pages:update', args=(page_url,)), data=json.dumps(page_data), content_type='application/json')
+        response = self.client.post(django.core.urlresolvers.reverse('pages:update', args=(page_url,)), data=json.dumps(self.page_data), content_type='application/json')
         
         response_json = {
             'wikiPage': page_url
@@ -241,5 +245,16 @@ class WikiPageUpdateView(django.test.TestCase):
         self.assertContains(response, json.dumps(response_json), status_code=200)
         
         updated_page = pages.models.WikiPage.objects.get(page_url=page_url)
-        self.assertEquals(updated_title, updated_page.title)
-        self.assertEquals(updated_content, updated_page.page_content)
+        self.assertEquals(self.updated_title, updated_page.title)
+        self.assertEquals(self.updated_content, updated_page.page_content)
+        
+    def test_update_view_no_page(self):
+        '''
+            Ensure that update view returns error if there is no wiki page associated with url
+           '''
+        page_url = 'update-no-page'
+        
+        response = self.client.post(django.core.urlresolvers.reverse('pages:update', args=(page_url,)), data=json.dumps(self.page_data), content_type='application/json')
+        
+        self.assertEquals(404, response.status_code)
+        self.assertTrue('errors' in json.loads(response.content))
