@@ -20,8 +20,8 @@ def new(request):
     return django.http.HttpResponse(new_page_template.render())
     
 def create(request):
-    if(request.method != "POST"):
-        response_json = json.dumps({u'errors': ["Only allowed method is %s" % ("POST")]})
+    if request.method != "POST":
+        response_json = json.dumps({u'errors': ["The only allowed request method is %s" % ("POST")]})
         return django.http.HttpResponseNotAllowed(['POST'], response_json, content_type="application/json")
     
     new_page_content = json.loads(request.body)
@@ -55,6 +55,10 @@ def edit(request, page_url):
     return django.http.HttpResponse(edit_page_template.render(context))
     
 def update(request, page_url):
+    if request.method != 'POST':
+        response_json = json.dumps({u'errors': ["The only allowed request method is %s" % ("POST")]})
+        return django.http.HttpResponseNotAllowed(['POST'], response_json, content_type="application/json")
+
     update_page = None
     try:
         update_page = models.WikiPage.objects.get(page_url=page_url)

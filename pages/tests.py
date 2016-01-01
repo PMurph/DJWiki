@@ -258,3 +258,14 @@ class WikiPageUpdateView(django.test.TestCase):
         
         self.assertEquals(404, response.status_code)
         self.assertTrue('errors' in json.loads(response.content))
+        
+    def test_update_view_non_post_request(self):
+        '''
+            Ensure that update view throws errors a non post request
+           '''
+        page_url = 'update-no-page'
+        
+        response = self.client.get(django.core.urlresolvers.reverse('pages:update', args=(page_url,)), data=self.page_data, content_type='application/json')
+        
+        self.assertEquals(405, response.status_code)
+        self.assertTrue('errors' in json.loads(response.content))
