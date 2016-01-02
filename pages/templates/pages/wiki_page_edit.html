@@ -5,6 +5,8 @@
 <head>
 <title>Wiki: Editting {{ page_title }}</title>
 {% load staticfiles %}
+<script src='{% static "pages/js/src/FormUtilities.js" %}'></script>
+<script src='{% static "pages/js/src/EditPageSubmission.js" %}'></script>
 </head>
 
 <body>
@@ -22,7 +24,7 @@
          </div>
         
         <div>
-            <button type="button">Save</button>
+            <button type="button" onClick="updatePage(formToJson(this.form), new XMLHttpRequest(), window, document);">Save</button>
         </div>
     </form>
 </div>

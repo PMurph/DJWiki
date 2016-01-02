@@ -15,7 +15,7 @@ Scenario: Viewing the edit page
     And given that I view the EditTestPage edit operation page
     And given that I enter "EdittedTestPage" as the title
     And given that I enter "This is a test to see if the editting feature is working" as the page_content
-    And given that I save the edits
+    And given that I save the EditTestPage changes 
     I should receive a message stating that the EditTestPage page has been saved
     Given that I view the EditTestPage detail operation page
     It should have "EdittedTestPage" as the title

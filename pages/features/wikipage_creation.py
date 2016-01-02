@@ -57,7 +57,8 @@ def given_that_I_create_the_page(step):
     
 @lettuce.step(u'[And ]{0,1}I should receive a message stating the ([^\s]+) page was created')
 def should_receive_message_stating_page_was_created(step, page_name):
-    assert('{"wikiPage": "NewProject"}' == lettuce.world.current_response.content)
+    response = '{"wikiPage": "%s"}' % (page_name)
+    assert(response == lettuce.world.current_response.content)
     
 @lettuce.step(u'[And ]{0,1}I should see the "([^"]+)" page')
 def should_see_the_page(step, page_name):
@@ -66,4 +67,4 @@ def should_see_the_page(step, page_name):
 @lettuce.step(u'[And ]{0,1}I should receive a message stating there was an error creating the page')
 def should_receive_message_stating_there_was_an_error_creating_the_page(step):
     response_json = json.loads(lettuce.world.current_response.content)
-    assert(len(response_json['errors']) > 0)
+    assert(len(response_json[u'errors']) > 0)

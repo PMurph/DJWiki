@@ -22,17 +22,18 @@ def tearDown(*args):
 @lettuce.step(u'[And ]{0,1}[G|g]iven that I view the ([^\s]+) ([^\s]+) operation page')
 def given_i_view_pages_operation(step, page_title, page_operation):
     page_operation = 'pages:%s' % (page_operation)
-    lettuce.world.last_response = lettuce.world.test_client.get(django.core.urlresolvers.reverse(page_operation, args=(page_title,)))
+    lettuce.world.current_response = lettuce.world.test_client.get(django.core.urlresolvers.reverse(page_operation, args=(page_title,)))
     
-@lettuce.step(u'[And ]{0,1}[G|g]iven that I save the edits')
-def given_that_i_save_edits(step):
-    assert(False)
+@lettuce.step(u'[And ]{0,1}[G|g]iven that I save the ([^\s]+) changes')
+def given_that_i_save_edits(step, page_url):
+    lettuce.world.current_response = lettuce.world.test_client.post(django.core.urlresolvers.reverse('pages:update', args=(page_url,)), data=json.dumps(lettuce.world.form), content_type='application/json')
     
 @lettuce.step(u'[And ]{0,1}I should receive a message stating that the ([^\s]+) page has been saved')
 def should_receive_message_that_page_was_saved(step, page_url):
-    assert(False)
+    response = '{"wikiPage": "%s"}' % (page_url)
+    assert(response == lettuce.world.current_response.content)
     
 @lettuce.step(u'[And ]{0,1}[I|i]t should have a link to the ([^\s]+) operation page')
 def should_have_link_to_page_operation(step, page_operation):
-    page_link = "href='%s/'" % (page_operation)
-    assert(page_link in lettuce.world.last_response.content)
+    page_link = 'href="%s/"' % (page_operation)
+    assert(page_link in lettuce.world.current_response.content)

@@ -48,9 +48,9 @@ def given_that_the_page_exists(step, page_name):
     try:
         response = lettuce.world.test_client.get(django.core.urlresolvers.reverse('pages:detail', args=(page_name,)))
         if "Wiki: %s" % (page_name) not in response.content:
-            pages.models.WikiPage(title=page_name, page_content="This is a test project", last_modified=django.utils.timezone.now()).save()
+            pages.models.WikiPage(title=page_name, page_url=page_name, page_content="This is a test project", last_modified=django.utils.timezone.now()).save()
     except:
-        pages.models.WikiPage(title=page_name, page_content="This is a test project", last_modified=django.utils.timezone.now()).save()
+        pages.models.WikiPage(title=page_name, page_url=page_name, page_content="This is a test project", last_modified=django.utils.timezone.now()).save()
 
 @lettuce.step(u'[And ]{0,1}[G|g]iven that I view the ([^\s]+) page')
 def given_that_i_view_the_page(step, page_name):
