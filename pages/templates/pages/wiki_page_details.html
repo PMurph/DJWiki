@@ -4,6 +4,9 @@
 
 <head>
     <title>Wiki: {{ page_title }}</title>
+    {% load staticfiles %}
+    <script src='{% static "pages/js/src/FormUtilities.js" %}'></script>
+    <script src='{% static "pages/js/src/DeletePageSubmission.js" %}'></script>
 </head>
 
 <body>
@@ -11,6 +14,7 @@
     <div id="content">{{ page_content }}</div>
     <div id="controls">
         <a href="edit/">Edit Page</a>
+        <button type="button" onClick="deletePage({}, new XMLHttpRequest(), window, document);">Delete</button>
     </div>
 </body>
 

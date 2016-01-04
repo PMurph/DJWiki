@@ -269,3 +269,43 @@ class WikiPageUpdateView(django.test.TestCase):
         
         self.assertEquals(405, response.status_code)
         self.assertTrue('errors' in json.loads(response.content))
+        
+class WikiPageDeleteTest(django.test.TestCase):
+    def test_delete_existing_page(self):
+        '''
+            Ensure that delete actually deletes a page
+           '''
+        page_name = "DeletePageTest"
+        page_content = "A test to ensure deleting a page works"
+        create_page(page_name, page_name, page_content)
+        
+        response = self.client.post(django.core.urlresolvers.reverse('pages:delete', args=(page_name,)))
+        
+        self.assertEquals(200, response.status_code)
+        
+    def test_delete_page_does_not_exist(self):
+        '''
+            Ensure that delete throws an error if the page to be deleted doesn't exist
+           '''
+        page_name = "NotAPageTest"
+        
+        response = self.client.post(django.core.urlresolvers.reverse('pages:delete', args=(page_name,)))
+        
+        self.assertEquals(404, response.status_code)
+        self.assertTrue('errors' in json.loads(response.content))
+
+    def test_delete_page_non_post_request(self):
+        '''
+            Ensure that delete throws an error if the request is not a post request
+           '''
+        page_name = "NotAPostRequestTest"
+        page_content = "A test to ensure the page is not deleted"
+        create_page(page_name, page_name, page_content)
+        
+        response = self.client.get(django.core.urlresolvers.reverse('pages:delete', args=(page_name,)))
+        
+        self.assertEquals(405, response.status_code)
+        self.assertTrue('errors' in json.loads(response.content))
+        
+        # Page must still exist
+        self.assertIsNotNone(pages.models.WikiPage.objects.get(page_url=page_name))

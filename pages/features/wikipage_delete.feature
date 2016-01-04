@@ -9,5 +9,5 @@ Scenario: Viewing the delete button
 
 Scenario: Deleting a page
     Given that the DeleteTestProject page exists
-    And givne that I delete the DeleteTestProject page
+    And given that I delete the DeleteTestProject page
     The DeleteTestProject page should no longer exist

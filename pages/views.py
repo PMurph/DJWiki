@@ -74,3 +74,21 @@ def update(request, page_url):
     update_page.save()
     response_json = json.dumps({u'wikiPage': page_url})
     return django.http.HttpResponse(response_json, content_type='application/json')
+    
+def delete(request, page_url):
+    if request.method != 'POST':
+        response_json = json.dumps({u'errors': ['The only allowed request method is %s' % ("POST")]})
+        return django.http.HttpResponseNotAllowed(['POST'], response_json, content_type="application/json")
+
+    page_to_delete = None
+    try:
+        page_to_delete = models.WikiPage.objects.get(page_url=page_url)
+    except django.core.exceptions.ObjectDoesNotExist as odne:
+        response_json = json.dumps({u'errors': ["Page %s does not exist" % (page_url)]})
+        return django.http.HttpResponseNotFound(response_json, content_type='application/json')
+        
+    page_to_delete.delete()
+    
+    response_json = json.dumps({})
+    return django.http.HttpResponse(response_json, content_type='application/json')
+    
